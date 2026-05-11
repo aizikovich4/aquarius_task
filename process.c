@@ -67,6 +67,10 @@ static bool isKeyNeighborhood(char current_key, char new_key)
         positions_initialized = true;
     }
 
+    if (!isalpha(current_key) || !isalpha(new_key)) {
+        return false;
+    }
+
     char cur = tolower(current_key);
     char new = tolower(new_key);
 
@@ -94,42 +98,60 @@ static bool isKeyNeighborhood(char current_key, char new_key)
 }
 
 // this function find the substring which satisfise to ourcondition for word without spaces in begin and end
-static char* makeWord(char* str) {
-    if (!str) {
-        return NULL;
+static uint8_t trimwhitespace(char* out, uint8_t len, char const* str)
+{
+    if(len == 0) {
+        return 0;
     }
-    // trim leading space
-    while (str) {
-        if (isspace(*str)) {
-            ++str;
-        } else {
+
+    // Trim leading space
+    while(isspace((unsigned char)*str)) {
+        ++str;
+    }
+
+    if(*str == '\0') {
+        return 0;
+    }
+
+    // copy trailing symbols, but break on first space
+    uint8_t len_res=0;
+    for (uint8_t i=0; i < strlen(str); ++i, ++len_res) {
+        if (!isspace((unsigned char)str[i])) {
+            out[i] = str[i];
+        } else
+        {
+            out[i] = '\0';
             break;
         }
     }
-
-    if (!str) {
-        return NULL;
-    }
-
-    // trim trailing space
-    char* end = str + strlen(str);
-    while (end > str && isspace(*(end - 1))) {
-        --end;
-    }
-
-    *end = '\0';
-    return str;
+    return len_res;
 }
 
-static bool isGoodWord(char const* word)
+static bool isGoodWord(char* str)
 {
-    if (!word) {
+    if (!str) {
         return false;
     }
-    uint8_t len = strlen(word);
+
+    // normalize string
+    char normalizeWord[MAX_SIZE_WORD];
+    memset(normalizeWord, '\0', MAX_SIZE_WORD);
+    uint8_t len = trimwhitespace(normalizeWord, MAX_SIZE_WORD, str);
+    if (len == 0) {
+        return false;
+    }
+
+    len = strlen(normalizeWord);
+    if (len == 0) {
+        return false;
+    }
+    if (len == 1) {
+        return true;
+    }
+
     bool isValid = true;
     for (uint8_t i = 0; i < len - 1; ++i) {
-        if (!isKeyNeighborhood(word[i], word[i+1])) {
+        if (!isKeyNeighborhood(normalizeWord[i], normalizeWord[i+1])) {
             isValid = false;
             break;
         }
@@ -142,7 +164,26 @@ static bool isGoodWord(char const* word)
 // this asserts is enough for testing main functions, no need to use special frameworks as gtest
 void asserts()
 {
+    assert(!isGoodWord(""));
+    assert(isGoodWord(" q"));
+    assert(isGoodWord(" q "));
+    assert(isGoodWord("q "));
+    assert(!isGoodWord("cfb"));
+    assert(!isGoodWord(" cfb"));
+    assert(!isGoodWord(" cfb "));
+    assert(!isGoodWord("cfb "));
+    assert(!isGoodWord("tgn"));
     assert(isGoodWord("qwertyuiop"));
+    assert(isGoodWord("   asdfg"));
+    assert(isGoodWord("qwerty    "));
+    assert(isGoodWord("dddfffggg"));
+    assert(isGoodWord("   hhh   "));
+    assert(isGoodWord("fff"));
+    assert(isGoodWord(" yyyy "));
+    assert(isGoodWord("qqwweerrttyyuu"));
+    assert(isGoodWord("  qqwweerrttyyuu"));
+    assert(isGoodWord("qqwweerrttyyuu  "));
+    assert(isGoodWord("   qqwweerrttyyuu   "));
     assert(isGoodWord("poiuytrewq"));
     assert(isGoodWord("asdfghjkl"));
     assert(isGoodWord("zxcvbnm"));
@@ -159,6 +200,13 @@ void asserts()
     assert(!isGoodWord("bht"));
     assert(isGoodWord("fc"));
     assert(!isGoodWord("fcs"));
+    assert(!isGoodWord("FCS"));
+    assert(isGoodWord("FC"));
+    assert(isGoodWord("QWERTY"));
+    assert(isGoodWord("  QWERTY"));
+    assert(isGoodWord("QWERTY  "));
+    assert(isGoodWord("  QWERTY  "));
+
     return;
 }
 #endif
@@ -174,26 +222,14 @@ HandleResult countQwertyNeighborhoodWords(char const* path, uint64_t* res)
 
     char buf[MAX_SIZE_WORD];
     while (fgets(buf, sizeof(buf), file)) {
-        // normalize string
-        char* word = NULL;
-        word = makeWord(buf);
-        if (!word) {
-            continue;
-        }
-        uint8_t len = strlen(word);
-        if (len == 0) {
-            continue;
-        }
-
-        // start for real work
         if (isGoodWord(buf)) {
 #ifdef DEBUG
-            printf("VALID word:%s\n", buf);
+            printf("VALID word:%s", buf);
 #endif
             ++(*res);
         } else {
 #ifdef DEBUG
-            printf("INVALID word:%s\n", buf);
+            printf("INVALID word:%s", buf);
 #endif
         }
     }
