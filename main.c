@@ -1,15 +1,23 @@
 #include <stdio.h>
 
-int main(int argc, char *argv[]) {
-    printf("Count of args: %d\n", argc - 1);
+#include "process.h"
+#include <unistd.h>  // для getcwd на Linux
 
-    if (argc > 1) {
-        printf("Args:\n");
-        for (int i = 1; i < argc; i++) {
-            printf("%d: %s\n", i, argv[i]);
-        }
+int main(int argc, char *argv[]) {
+    //asserts();
+
+    if (argc < 2) {
+        printf("Example of usage: %s <path_to_file>\n", argv[0]);
+        return 1;
+    }
+
+    uint64_t resCount = 0;
+    HandleResult res = countQwertyNeighborhoodWords(argv[1], &resCount);
+
+    if (res == SUCCESS) {
+        printf("Count of enable words (on qwerty limit): %lu\n",resCount);
     } else {
-        printf("No args.\n");
+        perror("Error on counting words");
     }
 
     return 0;
