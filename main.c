@@ -4,7 +4,9 @@
 #include <unistd.h>  // для getcwd на Linux
 
 int main(int argc, char *argv[]) {
-    //asserts();
+    #ifdef DEBUG
+        asserts();
+    #endif
 
     if (argc < 2) {
         printf("Example of usage: %s <path_to_file>\n", argv[0]);
@@ -15,7 +17,7 @@ int main(int argc, char *argv[]) {
     HandleResult res = countQwertyNeighborhoodWords(argv[1], &resCount);
 
     if (res == SUCCESS) {
-        printf("Count of enable words (on qwerty limit): %lu\n",resCount);
+        printf("Count of words (with qwerty limit): %lu\n",resCount);
     } else {
         perror("Error on counting words");
     }
