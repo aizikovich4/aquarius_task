@@ -98,7 +98,7 @@ static bool isKeyNeighborhood(char current_key, char new_key)
 }
 
 // this function find the substring which satisfise to ourcondition for word without spaces in begin and end
-static uint8_t trimwhitespace(char* out, uint8_t len, char const* str)
+static uint8_t makeNormalizeWord(char* out, uint8_t len, char const* str)
 {
     if(len == 0) {
         return 0;
@@ -136,7 +136,7 @@ static bool isGoodWord(char* str)
     // normalize string
     char normalizeWord[MAX_SIZE_WORD];
     memset(normalizeWord, '\0', MAX_SIZE_WORD);
-    uint8_t len = trimwhitespace(normalizeWord, MAX_SIZE_WORD, str);
+    uint8_t len = makeNormalizeWord(normalizeWord, MAX_SIZE_WORD, str);
     if (len == 0) {
         return false;
     }
