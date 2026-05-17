@@ -26,10 +26,15 @@ typedef struct {
 // Its global object for this file, its filling on first countUniqueQwertyWords() call,
 // no need to modify or update it. I dont like it, but make it global
 // index - monotonnic increase key on keyboard ('q' is first, 'm' is last)
-static KeyPosition key_positions[26];
+static KeyPosition key_positions[ALHABET_COUNT];
 
 static const int8_t KEY_OFFSET = 13; // offset for every key from previous
 static const double ROW_OFFSET = 5; // offset for every row from previous (for example asdf... is offset from qwerty..., and so on)
+
+static uint8_t get_index(char const key)
+{
+    return key - 'a';
+}
 
 // for every key we make the position in keyboard
 // It will use for calculate the distance between key
@@ -38,8 +43,8 @@ static void init_key_positions(void) {
         char const* row_str = QWERTY_KEYBOARD[i];
         for (uint8_t j = 0; row_str[j] != '\0'; ++j) {
             char ch = row_str[j];
-            key_positions[ch - 'a'].row = i;
-            key_positions[ch - 'a'].x_column = j * KEY_OFFSET + i * ROW_OFFSET;
+            key_positions[get_index(ch)].row = i;
+            key_positions[get_index(ch)].x_column = j * KEY_OFFSET + i * ROW_OFFSET;
         }
     }
 
@@ -49,7 +54,7 @@ static void init_key_positions(void) {
         char const* row_str = QWERTY_KEYBOARD[i];
         for (uint8_t j = 0; row_str[j] != '\0'; ++j) {
             char ch = row_str[j];
-            printf("%c: %u, %d \t", ch, key_positions[ch-'a'].row, key_positions[ch-'a'].x_column);
+            printf("%c: %u, %d \t", ch, key_positions[get_index(ch)].row, key_positions[get_index(ch)].x_column);
         }
         printf("\n");
     }
@@ -71,15 +76,15 @@ static bool isKeyNeighborhood(char current_key, char new_key)
         return false;
     }
 
-    char cur = tolower(current_key);
-    char new = tolower(new_key);
+    current_key = tolower(current_key);
+    new_key = tolower(new_key);
 
-    if (cur == new) {
+    if (current_key == new_key) {
         return true; // allow double keys
     }
 
-    KeyPosition const* curr_key_pos = &key_positions[cur-'a'];
-    KeyPosition const* new_key_pos = &key_positions[new-'a'];
+    KeyPosition const* curr_key_pos = &key_positions[get_index(current_key)];
+    KeyPosition const* new_key_pos = &key_positions[get_index(new_key)];
 
     // calculate length of path between keys
     int8_t dist_row = abs(curr_key_pos->row - new_key_pos->row);
